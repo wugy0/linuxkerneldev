@@ -6,6 +6,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as ctags from './ctags';
 import * as util from './util';
+import { getWorkspaceRootPath } from './util';
 // non ctags related
 import { LinuxDevCmdProvider, CmdOption } from './cmdNodeProvider'
 import { LinuxNativeCommands } from './LinuxNativeCommands';
@@ -91,7 +92,7 @@ class CTagsHoverProvider implements vscode.HoverProvider {
 		util.log(`"${query}" has ${matches.length} matches.`);
 		const summary = matches.map(match => {
 			return (
-				path.relative(vscode.workspace.rootPath || '', match.path) +
+				path.relative(getWorkspaceRootPath() || '', match.path) +
 				':' +
 				match.lineno
 			);
@@ -173,7 +174,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// time to work
 	// tree view
 	const cmdNodesProvider =
-		new LinuxDevCmdProvider(vscode.workspace.rootPath);
+		new LinuxDevCmdProvider(getWorkspaceRootPath());
 	vscode.window.registerTreeDataProvider('linuxDevCmdView',
 		cmdNodesProvider);
 
@@ -181,7 +182,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const nativeCmdsExecuter = new LinuxNativeCommands();
 
 	// check for deps
-	nativeCmdsExecuter.checkDeps(vscode.workspace.rootPath,
+	nativeCmdsExecuter.checkDeps(getWorkspaceRootPath(),
 		(data: string) => {
 			vscode.window.setStatusBarMessage(data);
 		}, (err: string) => {
@@ -302,7 +303,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// ctags
 	if (!ctagsConfig.get<boolean>('disable', false)) {
-		tags = new ctags.CTags(vscode.workspace.rootPath || '', tagsfile);
+		tags = new ctags.CTags(getWorkspaceRootPath() || '', tagsfile);
 		tags
 			.reindex()
 			.then(() => {
@@ -421,7 +422,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// call the grep script
 			nativeCmdsExecuter.findAndOpenDeviceTreeDoc(
 				getSelectedString(),
-				vscode.workspace.rootPath,
+				getWorkspaceRootPath(),
 				(data: string) => {
 					vscode.window.setStatusBarMessage(data);
 				},
@@ -435,7 +436,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// call the grep script
 			nativeCmdsExecuter.findDeviceTreeMatch(
 				getSelectedString(),
-				vscode.workspace.rootPath,
+				getWorkspaceRootPath(),
 				(data: string) => {
 					vscode.window.setStatusBarMessage(data);
 				},
@@ -449,7 +450,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// call the grep script
 			nativeCmdsExecuter.findArmDts(
 				getSelectedString(),
-				vscode.workspace.rootPath,
+				getWorkspaceRootPath(),
 				(data: string) => {
 					vscode.window.setStatusBarMessage(data);
 				},
@@ -463,7 +464,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// call the grep script
 			nativeCmdsExecuter.findArm64Dts(
 				getSelectedString(),
-				vscode.workspace.rootPath,
+				getWorkspaceRootPath(),
 				(data: string) => {
 					vscode.window.setStatusBarMessage(data);
 				},
@@ -477,7 +478,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// call the grep script
 			nativeCmdsExecuter.findLinuxInclude(
 				getSelectedInclude(),
-				vscode.workspace.rootPath,
+				getWorkspaceRootPath(),
 				(data: string) => {
 					vscode.window.setStatusBarMessage(data);
 				},

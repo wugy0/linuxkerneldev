@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { getWorkspaceRootPath } from './util';
 import { DeviceTreeCompile } from './DeviceTreeCompile';
 
 /**
@@ -20,9 +21,9 @@ export class DeviceTreeVSCodeDiags {
             // TODO: here we are harding coding the include path
             let dtc = new DeviceTreeCompile(
                 fileDocument.fsPath,
-                path.join(vscode.workspace.rootPath!, "include"),
+                path.join(getWorkspaceRootPath()!, "include"),
                 useDocker,
-                vscode.workspace.rootPath!
+                getWorkspaceRootPath()!
             );
             
             // cleanup

@@ -7,7 +7,7 @@ import { existsSync, readFile, writeFile, writeFileSync } from 'fs';
 import { capitalize } from './dtsUtil';
 import { LinuxNativeCommands } from './LinuxNativeCommands';
 import { CompatibleMatchCache, DocMatchCache } from './CompatibleMatchCache';
-import { delay } from './util';
+import { delay, getWorkspaceRootPath } from './util';
 
 const _statusbarIndexing = vscode.window
     .createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -401,7 +401,7 @@ export class DTSEngine implements
                     canSelectFiles: true,
                     openLabel: 'Add shield file',
                     canSelectMany: true,
-                    defaultUri: vscode.Uri.file(vscode.workspace.rootPath),
+                    defaultUri: vscode.Uri.file(getWorkspaceRootPath() || ''),
                     filters: { 'DeviceTree': ['dts', 'dtsi', 'overlay'] },
                 };
                 vscode.window.showOpenDialog(options).then(uris => {
@@ -1694,7 +1694,7 @@ export class DTSEngine implements
                                 const fileMatch =
                                     await nativeCmdHelper.asyncFindDeviceTreeMathc(
                                         compatibleValues[j].val,
-                                        vscode.workspace.rootPath!
+                                        getWorkspaceRootPath()!
                                     );
                                 if (fileMatch.trim() != "") {
                                     const grepSlices = fileMatch.split(":");
@@ -1744,7 +1744,7 @@ export class DTSEngine implements
                                 const fileMatch =
                                     await nativeCmdHelper.asyncFindDeviceTreeDoc(
                                         compatibleValues[j].val,
-                                        vscode.workspace.rootPath!
+                                        getWorkspaceRootPath()!
                                     );
                                 if (fileMatch.trim() != "") {
                                     const grepLines = fileMatch.split("\n");

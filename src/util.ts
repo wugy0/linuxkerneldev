@@ -41,3 +41,10 @@ export async function delay (miliseconds: number): Promise<void> {
     setTimeout(resolve, miliseconds);
   });
 }
+
+/**
+ * 获取工作区根路径，替代已弃用的 vscode.workspace.rootPath
+ */
+export function getWorkspaceRootPath(): string | undefined {
+  return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+}

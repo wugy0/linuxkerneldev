@@ -5,7 +5,7 @@ import { rename, stat, Stats } from 'fs';
 import * as path from 'path';
 import { CTagsIndex, Match, Tag } from './ctagsindex';
 import { TaskQueue } from './taskqueue';
-import { log } from './util';
+import { log, getWorkspaceRootPath } from './util';
 
 export class CTags {
   private baseDir: string;
@@ -78,7 +78,7 @@ export class CTags {
       } else {
         command = ['docker']
           .concat('run', '--rm')
-          .concat('-v', `${vscode.workspace.rootPath!}:/bindmount`)
+          .concat('-v', `${getWorkspaceRootPath()!}:/bindmount`)
           .concat('seadoglinux/utils')
           .concat('ctags')
           .concat(args || [])

@@ -5,6 +5,7 @@
  */
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { getWorkspaceRootPath } from './util';
 import { Define, preprocess, Defines, ProcessedFile } from './preprocessor';
 import { NodeType, TypeLoader } from './dtsTypes';
 import { ParserState } from './dtsParser';
@@ -1362,15 +1363,15 @@ export class Parser {
 
         Object.entries(defines).forEach(([name, value]) => this.defines[name] = new Define(name, value));
 
-        if (vscode.workspace.rootPath != null) {
+        if (getWorkspaceRootPath() != null) {
             // 使用配置的include路径
             const configIncludes = DTSEngine.getIncludeDirs();
             this.includes.push(...configIncludes);
             
             // 如果没有配置，使用默认路径作为后备
             if (configIncludes.length === 0) {
-                this.includes.push(path.join(vscode.workspace.rootPath, "include"));
-                this.includes.push(path.join(vscode.workspace.rootPath,
+                this.includes.push(path.join(getWorkspaceRootPath()!, "include"));
+            this.includes.push(path.join(getWorkspaceRootPath()!,
                     "scripts",
                     "dtc",
                     "include-prefixes"));

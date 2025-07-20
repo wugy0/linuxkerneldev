@@ -5,6 +5,7 @@
  */
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { getWorkspaceRootPath } from './util';
 import * as fs from 'fs';
 
 var config = vscode.workspace.getConfiguration('kconfig');
@@ -22,7 +23,7 @@ export function getRootFile(): vscode.Uri {
 	if (!root) {
 		// check if there is a Kconfig file in the workspace root
 		const kRoot = fs.existsSync(
-			path.join(vscode.workspace.rootPath!, 'Kconfig')
+			    path.join(getWorkspaceRootPath()!, 'Kconfig')
 		);
 
 		if (kRoot) {
@@ -30,7 +31,7 @@ export function getRootFile(): vscode.Uri {
 		} else {
 			// buildroot
 			const brRoot = fs.existsSync(
-				path.join(vscode.workspace.rootPath!, 'Config.in')
+				    path.join(getWorkspaceRootPath()!, 'Config.in')
 			);
 
 			if (brRoot) {
