@@ -178,6 +178,14 @@
 							"${workspaceFolder}/dts/bindings",
 							"${workspaceFolder}/Documentation/devicetree/bindings"
 						]
+					},
+					"devicetree.includes": {
+						"type": "array",
+						"description": "List of directories containing DTS include files. Relative paths are executed from each workspace.",
+						"default": [
+							"${workspaceFolder}/include",
+							"${workspaceFolder}/scripts/dtc/include-prefixes"
+						]
 					}
 				}
 			},

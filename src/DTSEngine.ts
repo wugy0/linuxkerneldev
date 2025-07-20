@@ -22,8 +22,13 @@ function getConfig(variable: string) {
     return undefined;
 }
 
-export function getBindingDirs(): string[] {
-    const dirs = getConfig('bindings') as string[];
+/**
+ * 解析配置路径中的变量替换
+ * @param configKey 配置键名
+ * @returns 解析后的路径数组
+ */
+function resolveConfigPaths(configKey: string): string[] {
+    const dirs = getConfig(configKey) as string[];
     return dirs.map(d => {
         return d.replace(/\${(.*?)}/g, (original, name: string) => {
             if (name === 'workspaceFolder') {
@@ -38,6 +43,14 @@ export function getBindingDirs(): string[] {
             return original;
         });
     }).map(path.normalize);
+}
+
+export function getBindingDirs(): string[] {
+    return resolveConfigPaths('bindings');
+}
+
+export function getIncludeDirs(): string[] {
+    return resolveConfigPaths('includes');
 }
 
 function toCIdentifier(name: string) {

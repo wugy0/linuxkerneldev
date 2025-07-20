@@ -9,6 +9,7 @@ import { Define, preprocess, Defines, ProcessedFile } from './preprocessor';
 import { NodeType, TypeLoader } from './dtsTypes';
 import { ParserState } from './dtsParser';
 import { isTyping } from './util';
+import * as DTSEngine from './DTSEngine';
 
 abstract class PropertyValue {
     val: any;
@@ -1361,13 +1362,19 @@ export class Parser {
 
         Object.entries(defines).forEach(([name, value]) => this.defines[name] = new Define(name, value));
 
-        // TODO: include paths
         if (vscode.workspace.rootPath != null) {
-            this.includes.push(path.join(vscode.workspace.rootPath, "include"));
-            this.includes.push(path.join(vscode.workspace.rootPath,
-                "scripts",
-                "dtc",
-                "include-prefixes"));
+            // 使用配置的include路径
+            const configIncludes = DTSEngine.getIncludeDirs();
+            this.includes.push(...configIncludes);
+            
+            // 如果没有配置，使用默认路径作为后备
+            if (configIncludes.length === 0) {
+                this.includes.push(path.join(vscode.workspace.rootPath, "include"));
+                this.includes.push(path.join(vscode.workspace.rootPath,
+                    "scripts",
+                    "dtc",
+                    "include-prefixes"));
+            }
         }
     }
 

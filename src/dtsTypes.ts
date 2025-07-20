@@ -569,16 +569,31 @@ export class TypeLoader {
 
     async addFolder(folder: string) {
         this.folders.push(folder);
-        const g = glob.sync('**/*.yaml', { cwd: folder, ignore: 'test/*' });
-        return Promise.all(g.map(file => new Promise<void>(resolve => {
+        // 支持 .yaml 和 .txt 文件
+        const yamlFiles = glob.sync('**/*.yaml', { cwd: folder, ignore: 'test/*' });
+        const txtFiles = glob.sync('**/*.txt', { cwd: folder, ignore: 'test/*' });
+        const allFiles = [...yamlFiles, ...txtFiles];
+        
+        return Promise.all(allFiles.map(file => new Promise<void>(resolve => {
             const filePath = path.resolve(folder, file);
             readFile(filePath, 'utf-8', async (err, out) => {
                 if (err) {
                     console.log(`Couldn't open ${file}`);
                 } else {
                     try {
-                        let tree = yaml.load(out, { json: true });
-                        this.addType(new NodeType({ name: path.basename(file, '.yaml'), ...tree }, filePath));
+                        let tree: any;
+                        const ext = path.extname(file);
+                        
+                        if (ext === '.yaml') {
+                            tree = yaml.load(out, { json: true });
+                            this.addType(new NodeType({ name: path.basename(file, '.yaml'), ...tree }, filePath));
+                        } else if (ext === '.txt') {
+                            // 对于 .txt 文件，尝试解析为简单的绑定格式
+                            tree = this.parseTxtBinding(out, file);
+                            if (tree) {
+                                this.addType(new NodeType({ name: path.basename(file, '.txt'), ...tree }, filePath));
+                            }
+                        }
                     } catch (e) {
                         // TODO: handle this
                         console.log(e);
@@ -588,6 +603,53 @@ export class TypeLoader {
                 resolve();
             });
         })));
+    }
+
+    private parseTxtBinding(content: string, filename: string): any {
+        // 简单的 .txt 绑定文件解析器
+        const lines = content.split('\n');
+        const tree: any = {
+            name: path.basename(filename, '.txt'),
+            properties: {}
+        };
+        
+        let currentSection = '';
+        let currentProperty = '';
+        
+        for (const line of lines) {
+            const trimmed = line.trim();
+            
+            // 跳过空行和注释
+            if (!trimmed || trimmed.startsWith('#')) {
+                continue;
+            }
+            
+            // 检测节标题
+            if (trimmed.startsWith('Required properties:') || trimmed.startsWith('Optional properties:')) {
+                currentSection = trimmed.toLowerCase().includes('required') ? 'required' : 'optional';
+                continue;
+            }
+            
+            // 检测属性定义
+            if (trimmed.includes(':')) {
+                const [propName, ...descParts] = trimmed.split(':');
+                const propNameTrimmed = propName.trim();
+                
+                if (propNameTrimmed && !propNameTrimmed.startsWith('-')) {
+                    currentProperty = propNameTrimmed;
+                    const description = descParts.join(':').trim();
+                    
+                    tree.properties[currentProperty] = {
+                        name: currentProperty,
+                        required: currentSection === 'required',
+                        type: 'string', // 默认类型
+                        description: description || undefined
+                    };
+                }
+            }
+        }
+        
+        return tree;
     }
 
     get(name: string): NodeType[] {
