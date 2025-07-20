@@ -1,8 +1,18 @@
 #!/bin/bash
+# usage: ./findDeviceTreeMatchReturnString.sh <workspace_path> <compatible_string>
 
-# find
-grepRet=$(grep -nrs --include=\*.c $2 $1/drivers/)
-#fileList=(${grepRet//:/ })
-fileList=$grepRet
+if [ $# -lt 2 ]; then
+    exit 1
+fi
 
-echo $fileList
+if [ ! -d "$1/drivers" ]; then
+    exit 0
+fi
+
+if command -v rg >/dev/null 2>&1; then
+    grepRet=$(rg -n --type c "$2" "$1/drivers/" 2>/dev/null || echo "")
+else
+    grepRet=$(grep -nrs --include=\*.c "$2" "$1/drivers/" 2>/dev/null || echo "")
+fi
+
+echo "$grepRet"

@@ -3,7 +3,11 @@
 echo "Searching 🏃 (Embedded Linux Dev)"
 
 # find
-grepRet=$(grep -rs "$2" $1/Documentation/devicetree/bindings)
+if command -v rg >/dev/null 2>&1; then
+    grepRet=$(rg -s "$2" "$1/Documentation/devicetree/bindings/" 2>/dev/null || echo "")
+else
+    grepRet=$(grep -rs "$2" "$1/Documentation/devicetree/bindings/" 2>/dev/null || echo "")
+fi
 fileList=(${grepRet//:/ })
 
 # open

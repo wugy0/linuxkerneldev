@@ -1,10 +1,13 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 const channel = vscode.window.createOutputChannel('CTags');
-const __DEBUG__ = true;
 
 export function log(...args: any[]) {
-  if (__DEBUG__) {
+  // 动态读取配置，避免需要重载窗口
+  const debugLogs = vscode.workspace.getConfiguration('kerneldev').get<boolean>('debugLogs', false);
+  
+  if (debugLogs) {
     args.unshift('vscode-ctags:');
     console.log(...args);
     channel.appendLine(args.join(' '));
@@ -47,4 +50,50 @@ export async function delay (miliseconds: number): Promise<void> {
  */
 export function getWorkspaceRootPath(): string | undefined {
   return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+}
+
+/**
+ * 解析VSCode变量替换，使用与DTSEngine.ts相同的逻辑
+ */
+function resolveVSCodeVariables(input: string): string {
+  return input.replace(/\${(.*?)}/g, (original, name: string) => {
+    if (name === 'workspaceFolder') {
+      return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? vscode.env.appRoot;
+    }
+
+    if (name.startsWith('workspaceFolder:')) {
+      const folder = name.split(':')[1];
+      return vscode.workspace.workspaceFolders?.find(w => w.name === folder)?.uri.fsPath ?? original;
+    }
+
+    return original;
+  });
+}
+
+/**
+ * 获取Linux内核路径，如果用户指定了内核路径则使用指定的路径，否则使用工作区根路径
+ */
+export function getKernelPath(): string | undefined {
+  const config = vscode.workspace.getConfiguration('kerneldev');
+  const kernelPath = config.get<string>('kernelPath', '');
+  
+  if (kernelPath && kernelPath.trim() !== '') {
+    // 解析VSCode变量替换
+    const resolvedPath = resolveVSCodeVariables(kernelPath);
+    
+    // 如果路径是相对路径，则相对于工作区根路径解析
+    if (!path.isAbsolute(resolvedPath)) {
+      const workspaceRoot = getWorkspaceRootPath();
+      if (workspaceRoot) {
+        const finalPath = path.resolve(workspaceRoot, resolvedPath);
+        const normalizedPath = path.normalize(finalPath);
+        return normalizedPath;
+      }
+    }
+    
+    const normalizedPath = path.normalize(resolvedPath);
+    return normalizedPath;
+  }
+  
+  return getWorkspaceRootPath();
 }

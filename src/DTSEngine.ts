@@ -7,7 +7,7 @@ import { existsSync, readFile, writeFile, writeFileSync } from 'fs';
 import { capitalize } from './dtsUtil';
 import { LinuxNativeCommands } from './LinuxNativeCommands';
 import { CompatibleMatchCache, DocMatchCache } from './CompatibleMatchCache';
-import { delay, getWorkspaceRootPath } from './util';
+import { delay, getWorkspaceRootPath, getKernelPath } from './util';
 
 const _statusbarIndexing = vscode.window
     .createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -50,7 +50,7 @@ export function getBindingDirs(): string[] {
 }
 
 export function getIncludeDirs(): string[] {
-    return resolveConfigPaths('includes');
+    return resolveConfigPaths('includePaths');
 }
 
 function toCIdentifier(name: string) {
@@ -1627,6 +1627,14 @@ export class DTSEngine implements
             _statusbarIndexing.show();
 
             const nativeCmdHelper = new LinuxNativeCommands();
+            const workspacePath = getWorkspaceRootPath();
+
+            // 检查工作区路径
+            if (!workspacePath) {
+                console.log('No workspace root path found, skipping DocumentLink creation');
+                _statusbarIndexing.hide();
+                return [];
+            }
 
             // TODO: we need to check why the first stable is not working
             // TODO: this is a workaround
@@ -1694,7 +1702,7 @@ export class DTSEngine implements
                                 const fileMatch =
                                     await nativeCmdHelper.asyncFindDeviceTreeMathc(
                                         compatibleValues[j].val,
-                                        getWorkspaceRootPath()!
+                                        getKernelPath()!
                                     );
                                 if (fileMatch.trim() != "") {
                                     const grepSlices = fileMatch.split(":");
@@ -1719,7 +1727,7 @@ export class DTSEngine implements
                                     throw new Error("goto");
                                 }
                             } catch (error) {
-                                console.log(`Error creating DocumentLink DTS .C`);
+                                console.log(`Error creating DocumentLink DTS .C for compatible "${compatibleValues[j].val}": ${error}`);
                                 CompatibleMatchCache.Cache.push({
                                     compatible: compatibleValues[j].val,
                                     file: undefined,
@@ -1744,7 +1752,7 @@ export class DTSEngine implements
                                 const fileMatch =
                                     await nativeCmdHelper.asyncFindDeviceTreeDoc(
                                         compatibleValues[j].val,
-                                        getWorkspaceRootPath()!
+                                        getKernelPath()!
                                     );
                                 if (fileMatch.trim() != "") {
                                     const grepLines = fileMatch.split("\n");
@@ -1779,7 +1787,7 @@ export class DTSEngine implements
                                     throw new Error("goto");
                                 }
                             } catch (error) {
-                                console.log(`Error creating DocumentLink DTS DOC`);
+                                console.log(`Error creating DocumentLink DTS DOC for compatible "${compatibleValues[j].val}": ${error}`);
                                 const matchDoc: DocMatchCache = {
                                     compatible: compatibleValues[j].val,
                                     files: [],

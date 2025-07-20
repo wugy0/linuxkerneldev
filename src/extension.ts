@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as ctags from './ctags';
 import * as util from './util';
-import { getWorkspaceRootPath } from './util';
+import { getWorkspaceRootPath, getKernelPath } from './util';
 // non ctags related
 import { LinuxDevCmdProvider, CmdOption } from './cmdNodeProvider'
 import { LinuxNativeCommands } from './LinuxNativeCommands';
@@ -98,7 +98,7 @@ class CTagsHoverProvider implements vscode.HoverProvider {
 			);
 		});
 		return new vscode.Hover(new vscode.MarkdownString(
-						summary.join('  \n')));
+			summary.join('  \n')));
 	}
 }
 
@@ -422,7 +422,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// call the grep script
 			nativeCmdsExecuter.findAndOpenDeviceTreeDoc(
 				getSelectedString(),
-				getWorkspaceRootPath(),
+				getKernelPath(),
 				(data: string) => {
 					vscode.window.setStatusBarMessage(data);
 				},
@@ -436,7 +436,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// call the grep script
 			nativeCmdsExecuter.findDeviceTreeMatch(
 				getSelectedString(),
-				getWorkspaceRootPath(),
+				getKernelPath(),
 				(data: string) => {
 					vscode.window.setStatusBarMessage(data);
 				},
@@ -450,7 +450,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// call the grep script
 			nativeCmdsExecuter.findArmDts(
 				getSelectedString(),
-				getWorkspaceRootPath(),
+				getKernelPath(),
 				(data: string) => {
 					vscode.window.setStatusBarMessage(data);
 				},
@@ -464,7 +464,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// call the grep script
 			nativeCmdsExecuter.findArm64Dts(
 				getSelectedString(),
-				getWorkspaceRootPath(),
+				getKernelPath(),
 				(data: string) => {
 					vscode.window.setStatusBarMessage(data);
 				},
@@ -478,7 +478,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// call the grep script
 			nativeCmdsExecuter.findLinuxInclude(
 				getSelectedInclude(),
-				getWorkspaceRootPath(),
+				getKernelPath(),
 				(data: string) => {
 					vscode.window.setStatusBarMessage(data);
 				},
@@ -528,11 +528,11 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	vscode.workspace.onDidOpenTextDocument(event => {
-		util.log('opened', event.fileName, event.languageId);
+		// util.log('opened', event.fileName, event.languageId);
 	});
 
 	vscode.workspace.onDidChangeTextDocument(event => {
-		util.log('changed', event.document.fileName, event.document.languageId);
+		// util.log('changed', event.document.fileName, event.document.languageId);
 	});
 
 	vscode.window.onDidChangeActiveTextEditor(event => {
@@ -546,7 +546,8 @@ export function activate(context: vscode.ExtensionContext) {
 	// xperimental https://miro.medium.com/max/910/1*snTXFElFuQLSFDnvZKJ6IA.png
 	vscode.workspace.onDidChangeConfiguration(val => {
 		if (val.affectsConfiguration('kerneldev.experimental') ||
-			val.affectsConfiguration('ctags.disable')
+			val.affectsConfiguration('ctags.disable') ||
+			val.affectsConfiguration('kerneldev.kernelPath')
 		) {
 			vscode.commands.executeCommand("workbench.action.reloadWindow");
 		}

@@ -165,6 +165,16 @@
 					"kerneldev.serial_dev": {
 						"type": "string",
 						"markdownDescription": "The serial /dev/<name> to connect by the agent proxy"
+					},
+					"kerneldev.debugLogs": {
+						"type": "boolean",
+						"markdownDescription": "Enable detailed debug logging for development and troubleshooting. When enabled, will log document changes and other detailed information.",
+						"default": false
+					},
+					"kerneldev.kernelPath": {
+						"type": "string",
+						"markdownDescription": "Path to the Linux kernel source directory. If not specified, will use the workspace root path. This path is used for finding device tree bindings, drivers, and documentation.",
+						"default": ""
 					}
 				}
 			},
@@ -179,7 +189,7 @@
 							"${workspaceFolder}/Documentation/devicetree/bindings"
 						]
 					},
-					"devicetree.includes": {
+					"devicetree.includePaths": {
 						"type": "array",
 						"description": "List of directories containing DTS include files. Relative paths are executed from each workspace.",
 						"default": [
